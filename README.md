@@ -191,19 +191,23 @@ Syntaksissa näyttäisi taas olevan vikaan, joten ajetaan ``$ /sbin/apache2ctl c
 ``AH00526:`` Virhe, joka kertoo, että ``mscom.conf`` tiedostossa on syntaksivirhe. ``Invalid command 'WSGIDaemonProcess', perhaps misspelled or defined by module not included in the server configuration`` Kertoo meille, ettei WSGIDaemonProcess pelaa tiedostossa. Error loki tarjosi meille jälleen ``SIGTERM`` eli palvelin on pysähtynyt.
 
 - Siirryin tarkastelemaan ``mscom.conf`` tiedostoa. ``$ micro /etc//etc/apache2/sites-available/mscom.conf``
-  - Tiedostossa on määritelty muuttujia, jotka ohjaavat määritelmät oikeisiin paikkoihin. ``WSGIDaemonProcess`` sisältää pelkästään ``USER`` muuttujan eli siinä tuskin on vikaa. Tämän alla on kuitenkin ``WSGIScriptAlias / ${WSGI}``, jossa on WSGI muuttuja. Muuttuja on määritelty osoittamaan tiedostoon ``wsgi.py``, joka on tiedostopolussa ``/home/miikkas/publicwsgi/mscom/mscom/wsgi.py``
-  - Siirryin tiedostoon, mutta tiedostossa oli kaikki kunnossa. 
-  - Päätin testata toimiiko Django omalla kehityspalvelimellaan.
+  - Tiedostossa on määritelty muuttujia, jotka ohjaavat määritelmät oikeisiin paikkoihin. ``WSGIDaemonProcess`` sisältää muuttujat ``TUSER``, ``TDIR`` ja ``TVENV``
+      - TDIR johtaa projektikansioon. Siinä tuskin on mitäänvikaa
+      - TUSER määrittelee käyttäjän, joka on oikein teidostossa
+      - Jäljelle jää TVENV, jossa on määritelty tiedostopolku ``/home/publicwsgi/env/lib/python3.9/site-packages``  
+  - Päätin ensin testata toimiiko Django omalla kehityspalvelimellaan.
     - Siirryin virtuaaliympäristöön ``$ cd publicwsgi/`` ja ``$ source env/bin/activate`` 
     - ``$ cd mscom/``
     - ``$ ./manage.py runserver``
   
 ![Add file: h12 19](h12-19.PNG)
 
-Kehityspalvelin vastasi myös errorilla ``Bad Request (400)``. 
-- Muistin, että settings.py tiedostossa on määritelty ``ALLOWED_HOSTS = ["localhost"]``, eli kehityspalvelimen URL toimii ``http://localhost:8000`` eli kehityspalvelin toimii normaalisti.
+Kehityspalvelin vastasi errorilla ``Bad Request (400)``. 
+- Muistin, että settings.py tiedostossa on määritelty ``ALLOWED_HOSTS = ["localhost"]``, eli kehityspalvelimen URL toimii ``http://localhost:8000``.
+      - Testasin avata kehityspalvelimen ``http://localhost:8000`` ja kehityspalvelin toimi normaalisti.
 
 ### Tehtävien tekeminen veikin odotettua kauemmin aikaa, joten palautan tehtävän tässä välissä ja teen sen loppuun myöhemmin. ~13:55
+
 
 
 
