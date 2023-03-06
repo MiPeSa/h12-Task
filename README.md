@@ -92,9 +92,9 @@ Django toimii taas.
 
 a) kohdan virheestä eroten tässä on [authz_core:error], joka oletettavasti kertoo, että virhe liittyy oikeuksiin(authorization). Myös [client ::1:49390] eroaa a) kohdan virheilmoituksesta. Tässä client kuvaa virheen lähdettä, mutta loppuosasta en ole aivan varma. Yleensä kyseisessä kohdassa on IP-osoite.  
 
-Virheilmoitus kertoo virheen olevan ``AH01630: client denied by server configuration: /home/miikkas/publicwsgi/mscom``. Errorin koodin ``AH01630`` avulla voisi lähteä selvittämään internetin välityksellä, mutta koska error antaa client denied päätin katsoa seuraavaksi Apachen access lokin.
+Virheilmoitus kertoo virheen olevan ``AH01630: client denied by server configuration: /home/miikkas/publicwsgi/mscom``. Errorin koodin ``AH01630`` avulla voisi lähteä selvittämään internetin välityksellä. Koska error antaa client denied päätin kuitenkin katsoa seuraavaksi Apachen access lokin.
 
-- Apachen access.log ei näyttänyt mitään, joten katsoin saatavilla oelvat apachen lokit
+- Apachen access.log ei näyttänyt mitään, joten katsoin saatavilla olevat apachen lokit
 
       $ cd /var/log/apache2/
 
@@ -139,15 +139,17 @@ Toimii!
 ![Add file: h12 25](h12-25.PNG)
 
 - 403 Forbidden Errori. Virhe kertoo, ettei minulla ole oikeuksia tämän sisällön käyttöön.
-- Tsekataan apachen error loki. ``sudo tail -F /var/log/apache2/access.log /var/log/apache2/error.log``
+- Tsekataan apachen error loki. ``sudo tail -F /var/log/apache2/error.log``
 
 Seuraava errori löytyi:
 
 ![Add file: h12 26](h12-26.PNG)
 
-Error [aikaleima] [core:error(virheen tyyppi)] [pid aj tid] .... [client ::1:38158(osoite)]
-Errori kertoo, että clientiltä on Permission denied. Errori ``AH0035: access to /admin/ denied``, koska tiedoston hakemiseen vaadittavat oikeudet puuttuvat tiedostopolun komponentista.  
-- Kopioin tiedostopolun ja yritin siirtyä tiedostoon, yritin myös listata tiedoston.
+Error ``[aikaleima]`` ``[core:error(virheen tyyppi)]`` ``[pid aj tid]`` .... ``[client ::1:38158(osoite)]``
+
+Errori kertoo, että clientiltä on oikeudet evätty: ``AH0035: access to /admin/ denied``, koska tiedoston hakemiseen vaadittavat oikeudet puuttuvat tiedostopolun komponentista.  
+
+- Kopioin tiedostopolun ja yritin siirtyä tiedostoon. Yritin myös listata tiedoston.
 
             $ cd /home/miikkas/publicwsgi/mscom/mscom
             $ ls /home/miikkas/publicwsgi/mscom/mscom
@@ -177,7 +179,7 @@ Tsekkasin vielä apachen serverin statuksen, jossa oli kaikki kunnossa, sekä te
 - Tämän jälkeen päivitin apachen palvelimen ``$ sudo systemctl restart apache2``. 
 - Testasin selaimessa toimiiko tuotantopalvelin ``http://localhost/admin/``
 
-![Add file: h12 27](h12-27.PNG)
+![Add file: h12 24](h12-24.PNG)
 
 Toimii!
 
@@ -202,7 +204,9 @@ Apachen serveri on kaatunut ja sen tila on failed. Serverin tilan alla listassa 
     
 ![Add file: h12 16](h12-16.PNG)
 
-Configtest kertoo suoraan, että apachen asetustiedostossa on Syntaksivirhe rivillä 8 tiedostossa /etc/apache2/sites-enabled/mscom.conf. ``<VirtualHost> was not closed`` on kyseinen virhe ja lopussa on vielä ``Action 'configtest' failed`` eli testi ei mennyt läpi. Lopussa lukee, että apachen error lokista löytyisi mahdollisesti lisää tietoa. Kävin tsekkaamassa sen vielä, vaikka errori jo selvisikin. Error lokissa oli vain ``AH00491: caught SIGTERM, shutting down``, joka käytännössä kertoo vain, että apachen palvelin on pysähtynyt.
+Configtest kertoo suoraan, että apachen asetustiedostossa on Syntaksivirhe rivillä 8 tiedostossa /etc/apache2/sites-enabled/mscom.conf. ``<VirtualHost> was not closed`` on kyseinen virhe ja lopussa on vielä ``Action 'configtest' failed`` eli testi ei mennyt läpi. Lopussa lukee, että apachen error lokista löytyisi mahdollisesti lisää tietoa. Kävin tsekkaamassa sen vielä, vaikka errori jo selvisikin. 
+
+Error lokissa oli vain ``AH00491: caught SIGTERM, shutting down``, joka käytännössä kertoo vain, että apachen palvelin on pysähtynyt.
 
 - Käydään korjaamassa virhe 
 
@@ -239,7 +243,9 @@ Palvelin vastasi ``failed`` eli se on kaatunut.
 
 Syntaksissa näyttäisi taas olevan vikaan, joten ajetaan ``$ /sbin/apache2ctl configtest``
 
-``AH00526:`` Virhe, joka kertoo, että ``mscom.conf`` tiedostossa on syntaksivirhe. ``Invalid command 'WSGIDaemonProcess', perhaps misspelled or defined by module not included in the server configuration`` Kertoo meille, että WSGIDaemonProcess on kirjoitettu väärin tiedostossa tai että se puuttuu kokonaan serverin konfiguraatiosta. Error loki tarjosi meille jälleen ``SIGTERM`` eli palvelin on pysähtynyt.
+``AH00526:`` Virhe, joka kertoo, että ``mscom.conf`` tiedostossa on syntaksivirhe. ``Invalid command 'WSGIDaemonProcess', perhaps misspelled or defined by module not included in the server configuration`` Kertoo meille, että WSGIDaemonProcess on kirjoitettu väärin tiedostossa tai että se puuttuu kokonaan serverin konfiguraatiosta. 
+
+Error loki tarjosi meille jälleen ``SIGTERM`` eli palvelin on pysähtynyt.
 
 - Siirryin tarkastelemaan ``mscom.conf`` tiedostoa. ``$ micro /etc//etc/apache2/sites-available/mscom.conf``
   - Tiedostossa on määritelty muuttujia, jotka ohjaavat määritelmät oikeisiin paikkoihin. ``WSGIDaemonProcess`` sisältää muuttujat ``TUSER``, ``TDIR`` ja ``TVENV``
@@ -312,7 +318,7 @@ DEBUG Näyttää suoraan missä vika eli väärä HTTP_HOST header:'localhost'. 
             ALLOWED_HOSTS = ["localhost"]
             
 - Tallennus, jonka jälkeen ``$ touch wsgi.py``
-- Testataam, että kehityspalveln toimii ``$ curl http://localhost:8000``
+- Testataan, että kehityspalvelin toimii ``$ curl http://localhost:8000``
 
 ![Add file: h12 23](h12-23.PNG)
 
@@ -326,3 +332,9 @@ Seuraavaksi kehityspalvelin kiinni.
 ![Add file: h12 24](h12-24.PNG)
 
 Nyt tuotantopalvelin on jälleen käytössä ja DEBUG pois päältä.
+
+Lopetin tehtävien tekemisen ~17:20
+
+## Lähteet
+
+Karvinen Tero 2023, h12 vianselvity, Luettavissa: https://terokarvinen.com/2023/linux-palvelimet-2023-alkukevat/#h12-vianselvitys
