@@ -196,12 +196,15 @@ Syntaksissa näyttäisi taas olevan vikaan, joten ajetaan ``$ /sbin/apache2ctl c
   - Päätin testata toimiiko Django omalla kehityspalvelimellaan.
     - Siirryin virtuaaliympäristöön ``$ cd publicwsgi/`` ja ``$ source env/bin/activate`` 
     - ``$ cd mscom/``
-    - ``$ ./manage.py runserver
+    - ``$ ./manage.py runserver``
   
 ![Add file: h12 19](h12-19.PNG)
 
-Kehityspalvelin vastasi myös errorilla ``Bad Request (400).`` 
+Kehityspalvelin vastasi myös errorilla ``Bad Request (400)``. 
+- Muistin, että settings.py tiedostossa on määritelty ``ALLOWED_HOSTS = ["localhost"]``, eli kehityspalvelimen URL toimii ``http://localhost:8000`` eli kehityspalvelin toimii normaalisti.
 
 ### Tehtävien tekeminen veikin odotettua kauemmin aikaa, joten palautan tehtävän tässä välissä ja teen sen loppuun myöhemmin. ~13:55
+
+
 
 ## f) Väärät domain-nimet ALLOWED_HOSTS-kohdassa
